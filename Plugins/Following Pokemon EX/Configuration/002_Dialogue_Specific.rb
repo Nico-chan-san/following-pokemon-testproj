@@ -7,7 +7,7 @@
 # Amie Compatibility
 #-------------------------------------------------------------------------------
 if defined?(PkmnAR)
-  Events.OnTalkToFollower += proc { |_pkmn, _random_val|
+  EventHandlers.add(:following_pkmn_talk, :amie, proc { |_pkmn, _random_val|
     cmd = pbMessage(_INTL("What would you like to do?"), [
       _INTL("Play"),
       _INTL("Talk"),
@@ -15,12 +15,12 @@ if defined?(PkmnAR)
     ])
     PkmnAR.show if cmd == 0
     next true if [0, 2].include?(cmd)
-  }
+  })
 end
 #-------------------------------------------------------------------------------
 # Special Dialogue when statused
 #-------------------------------------------------------------------------------
-Events.OnTalkToFollower += proc { |pkmn, _random_val|
+EventHandlers.add(:following_pkmn_talk, :status, proc { |pkmn, _random_val|
   case pkmn.status
   when :POISON
     FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_POISON)
@@ -44,40 +44,12 @@ Events.OnTalkToFollower += proc { |pkmn, _random_val|
     pbMessage(_INTL("{1} is standing still and twitching.", pkmn.name))
   end
   next true if pkmn.status != :NONE
-}
+})
 #-------------------------------------------------------------------------------
-# Special hold item on a map which includes battle in the name
+# Specific message if the map has the Pokemon Lab metadata flag
 #-------------------------------------------------------------------------------
-Events.OnTalkToFollower += proc { |_pkmn, _random_val|
-  if $game_map.name.include?("Battle")
-    # This array can be edited and extended to your hearts content.
-    items = [:POKEBALL, :POKEBALL, :POKEBALL, :GREATBALL, :GREATBALL, :ULTRABALL]
-    # Choose a random item from the items array, give the player 2 of the item
-    # with the message "{1} is holding a round object..."
-    next true if FollowingPkmn.item(items.sample, 2, _INTL("{1} is holding a round object..."))
-  end
-}
-#-------------------------------------------------------------------------------
-# Specific message if the Pokemon is a bug type and the map's name is route 3
-#-------------------------------------------------------------------------------
-Events.OnTalkToFollower += proc { |pkmn, _random_val|
-  if $game_map.name == "Route 3" && pkmn.hasType?(:BUG)
-    FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_MUSIC)
-    pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
-    messages = [
-      _INTL("{1} seems highly interested in the trees."),
-      _INTL("{1} seems to enjoy the buzzing of the bug Pokémon."),
-      _INTL("{1} is jumping around restlessly in the forest.")
-    ]
-    pbMessage(_INTL(messages.sample, pkmn.name, $Trainer.name))
-    next true
-  end
-}
-#-------------------------------------------------------------------------------
-# Specific message if the map name is Pokemon Lab
-#-------------------------------------------------------------------------------
-Events.OnTalkToFollower += proc { |pkmn, _random_val|
-  if $game_map.name == "Pokémon Lab"
+EventHandlers.add(:following_pkmn_talk, :pokemon_lab, proc { |pkmn, _random_val|
+  if $game_map.metadata&.has_flag?("PokemonLab")
     FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_ELIPSES)
     pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
     messages = [
@@ -85,16 +57,16 @@ Events.OnTalkToFollower += proc { |pkmn, _random_val|
       _INTL("{1} has a cord in its mouth!"),
       _INTL("{1} seems to want to touch the machinery.")
     ]
-    pbMessage(_INTL(messages.sample, pkmn.name, $Trainer.name))
+    pbMessage(_INTL(messages.sample, pkmn.name, $player.name))
     next true
   end
-}
+})
 #-------------------------------------------------------------------------------
 # Specific message if the map name has the players name in it like the
 # Player's House
 #-------------------------------------------------------------------------------
-Events.OnTalkToFollower += proc { |pkmn, _random_val|
-  if $game_map.name.include?($Trainer.name)
+EventHandlers.add(:following_pkmn_talk, :player_house, proc { |pkmn, _random_val|
+  if $game_map.name.include?($player.name)
     FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_HAPPY)
     pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
     messages = [
@@ -102,16 +74,15 @@ Events.OnTalkToFollower += proc { |pkmn, _random_val|
       _INTL("{1} noticed {2}'s mom is nearby."),
       _INTL("{1} seems to want to settle down at home.")
     ]
-    pbMessage(_INTL(messages.sample, pkmn.name, $Trainer.name))
+    pbMessage(_INTL(messages.sample, pkmn.name, $player.name))
     next true
   end
-}
+})
 #-------------------------------------------------------------------------------
-# Specific message if the map name has Pokecenter or Pokemon Center
+# Specific message if the map has Pokecenter metadata flag
 #-------------------------------------------------------------------------------
-Events.OnTalkToFollower += proc { |pkmn, _random_val|
-  if $game_map.name.include?("Poké Center") ||
-     $game_map.name.include?("Pokémon Center")
+EventHandlers.add(:following_pkmn_talk, :pokemon_center, proc { |pkmn, _random_val|
+  if $game_map.metadata&.has_flag?("PokeCenter")
     FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_HAPPY)
     pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
     messages = [
@@ -125,41 +96,15 @@ Events.OnTalkToFollower += proc { |pkmn, _random_val|
       _INTL("{1} is making itself comfortable."),
       _INTL("There's a content expression on {1}'s face.")
     ]
-    pbMessage(_INTL(messages.sample, pkmn.name, $Trainer.name))
+    pbMessage(_INTL(messages.sample, pkmn.name, $player.name))
     next true
   end
-}
+})
 #-------------------------------------------------------------------------------
-# Specific message if the map name has Forest
+# Specific message if the map has the Gym metadata flag
 #-------------------------------------------------------------------------------
-Events.OnTalkToFollower += proc { |pkmn, _random_val|
-  if $game_map.name.include?("Forest")
-    FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_MUSIC)
-    pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
-    messages = [
-      _INTL("{1} seems highly interested in the trees."),
-      _INTL("{1} seems to enjoy the buzzing of the bug Pokémon."),
-      _INTL("{1} is jumping around restlessly in the forest."),
-      _INTL("{1} is wandering around and listening to the different sounds."),
-      _INTL("{1} is munching at the grass."),
-      _INTL("{1} is wandering around and enjoying the forest scenery."),
-      _INTL("{1} is playing around, plucking bits of grass."),
-      _INTL("{1} is staring at the light coming through the trees."),
-      _INTL("{1} is playing around with a leaf!"),
-      _INTL("{1} seems to be listening to the sound of rustling leaves."),
-      _INTL("{1} is standing perfectly still and might be imitating a tree..."),
-      _INTL("{1} got tangled in the branches and almost fell down!"),
-      _INTL("{1} was surprised when it got hit by a branch!")
-    ]
-    pbMessage(_INTL(messages.sample, pkmn.name, $Trainer.name))
-    next true
-  end
-}
-#-------------------------------------------------------------------------------
-# Specific message if the map name has Gym in it
-#-------------------------------------------------------------------------------
-Events.OnTalkToFollower += proc { |pkmn, _random_val|
-  if $game_map.name.include?("Gym")
+EventHandlers.add(:following_pkmn_talk, :gym, proc { |pkmn, _random_val|
+  if $game_map.metadata&.has_flag?("GymMap")
     FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_ANGRY)
     pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
     messages = [
@@ -174,39 +119,183 @@ Events.OnTalkToFollower += proc { |pkmn, _random_val|
       _INTL("{1} is...doing warm-up exercises?"),
       _INTL("{1} is growling quietly in contemplation...")
     ]
-    pbMessage(_INTL(messages.sample, pkmn.name, $Trainer.name))
+    pbMessage(_INTL(messages.sample, pkmn.name, $player.name))
     next true
   end
-}
+})
 #-------------------------------------------------------------------------------
-# Specific message if the map name has Beach in it
+# Specific message when the weather is Storm. Pokemon of different types
+# have different reactions to the weather.
 #-------------------------------------------------------------------------------
-Events.OnTalkToFollower += proc { |pkmn, _random_val|
-  if $game_map.name.include?("Beach")
-    FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_HAPPY)
+EventHandlers.add(:following_pkmn_talk, :storm_weather, proc { |pkmn, _random_val|
+  if :Storm == $game_screen.weather_type
+    if pkmn.hasType?(:ELECTRIC)
+      FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_HAPPY)
+      pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
+      messages = [
+        _INTL("{1} is staring up at the sky."),
+        _INTL("The storm seems to be making {1} excited."),
+        _INTL("{1} looked up at the sky and shouted loudly!"),
+        _INTL("The storm only seems to be energizing {1}!"),
+        _INTL("{1} is happily zapping and jumping in circles!"),
+        _INTL("The lightning doesn't bother {1} at all.")
+      ]
+    else
+      FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_ELIPSES)
+      pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
+      messages = [
+        _INTL("{1} is staring up at the sky."),
+        _INTL("The storm seems to be making {1} a bit nervous."),
+        _INTL("The lightning startled {1}!"),
+        _INTL("The rain doesn't seem to bother {1} much."),
+        _INTL("The weather seems to be putting {1} on edge."),
+        _INTL("{1} was startled by the lightning and snuggled up to {2}!")
+      ]
+    end
+    pbMessage(_INTL(messages.sample, pkmn.name, $player.name))
+    next true
+  end
+})
+#-------------------------------------------------------------------------------
+# Specific message when the weather is Snowy. Pokemon of different types
+# have different reactions to the weather.
+#-------------------------------------------------------------------------------
+EventHandlers.add(:following_pkmn_talk, :snow_weather, proc { |pkmn, _random_val|
+  if :Snow == $game_screen.weather_type
+    if pkmn.hasType?(:ICE)
+      FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_HAPPY)
+      pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
+      messages = [
+        _INTL("{1} is watching the snow fall."),
+        _INTL("{1} is thrilled by the snow!"),
+        _INTL("{1} is staring up at the sky with a smile."),
+        _INTL("The snow seems to have put {1} in a good mood."),
+        _INTL("{1} is cheerful because of the cold!")
+      ]
+    else
+      FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_ELIPSES)
+      pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
+      messages = [
+        _INTL("{1} is watching the snow fall."),
+        _INTL("{1} is nipping at the falling snowflakes."),
+        _INTL("{1} wants to catch a snowflake in its' mouth."),
+        _INTL("{1} is fascinated by the snow."),
+        _INTL("{1}'s teeth are chattering!"),
+        _INTL("{1} made its body slightly smaller because of the cold...")
+      ]
+    end
+    pbMessage(_INTL(messages.sample, pkmn.name, $player.name))
+    next true
+  end
+})
+#-------------------------------------------------------------------------------
+# Specific message when the weather is Blizzard. Pokemon of different types
+# have different reactions to the weather.
+#-------------------------------------------------------------------------------
+EventHandlers.add(:following_pkmn_talk, :blizzard_weather, proc { |pkmn, _random_val|
+  if :Blizzard == $game_screen.weather_type
+    if pkmn.hasType?(:ICE)
+      FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_HAPPY)
+      pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
+      messages = [
+        _INTL("{1} is watching the hail fall."),
+        _INTL("{1} isn't bothered at all by the hail."),
+        _INTL("{1} is staring up at the sky with a smile."),
+        _INTL("The hail seems to have put {1} in a good mood."),
+        _INTL("{1} is gnawing on a piece of hailstone.")
+      ]
+    else
+      FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_ANGRY)
+      pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
+      messages = [
+        _INTL("{1} is getting pelted by hail!"),
+        _INTL("{1} wants to avoid the hail."),
+        _INTL("The hail is hitting {1} painfully."),
+        _INTL("{1} looks unhappy."),
+        _INTL("{1} is shaking like a leaf!")
+      ]
+    end
+    pbMessage(_INTL(messages.sample, pkmn.name, $player.name))
+    next true
+  end
+})
+#-------------------------------------------------------------------------------
+# Specific message when the weather is Sandstorm. Pokemon of different types
+# have different reactions to the weather.
+#-------------------------------------------------------------------------------
+EventHandlers.add(:following_pkmn_talk, :sandstorm_weather, proc { |pkmn, _random_val|
+  if :Sandstorm == $game_screen.weather_type
+    if [:ROCK, :GROUND].any? { |type| pkmn.hasType?(type) }
+      FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_HAPPY)
+      pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
+      messages = [
+        _INTL("{1} is coated in sand."),
+        _INTL("The weather doesn't seem to bother {1} at all!"),
+        _INTL("The sand can't slow {1} down!"),
+        _INTL("{1} is enjoying the weather.")
+      ]
+    elsif pkmn.hasType?(:STEEL)
+      FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_ELIPSES)
+      pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
+      messages = [
+        _INTL("{1} is coated in sand, but doesn't seem to mind."),
+        _INTL("{1} seems unbothered by the sandstorm."),
+        _INTL("The sand doesn't slow {1} down."),
+        _INTL("{1} doesn't seem to mind the weather.")
+      ]
+    else
+      FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_ANGRY)
+      pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
+      messages = [
+        _INTL("{1} is covered in sand..."),
+        _INTL("{1} spat out a mouthful of sand!"),
+        _INTL("{1} is squinting through the sandstorm."),
+        _INTL("The sand seems to be bothering {1}.")
+      ]
+    end
+    pbMessage(_INTL(messages.sample, pkmn.name, $player.name))
+    next true
+  end
+})
+#-------------------------------------------------------------------------------
+# Specific message if the map has the Forest metadata flag
+#-------------------------------------------------------------------------------
+EventHandlers.add(:following_pkmn_talk, :forest_map, proc { |pkmn, _random_val|
+  if $game_map.metadata&.has_flag?("Forest")
+    FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_MUSIC)
     pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
-    messages = [
-      _INTL("{1} seems to be enjoying the scenery."),
-      _INTL("{1} seems to enjoy the sound of the waves moving the sand."),
-      _INTL("{1} looks like it wants to swim!"),
-      _INTL("{1} can barely look away from the ocean."),
-      _INTL("{1} is staring longingly at the water."),
-      _INTL("{1} keeps trying to shove {2} towards the water."),
-      _INTL("{1} is excited to be looking at the sea!"),
-      _INTL("{1} is happily watching the waves!"),
-      _INTL("{1} is playing on the sand!"),
-      _INTL("{1} is staring at {2}'s footprints in the sand."),
-      _INTL("{1} is rolling around in the sand.")
-    ]
-    pbMessage(_INTL(messages.sample, pkmn.name, $Trainer.name))
+    if [:BUG, :GRASS].any? { |type| pkmn.hasType?(type) }
+      messages = [
+        _INTL("{1} seems highly interested in the trees."),
+        _INTL("{1} seems to enjoy the buzzing of the bug Pokémon."),
+        _INTL("{1} is jumping around restlessly in the forest.")
+      ]
+    else
+      messages = [
+        _INTL("{1} seems highly interested in the trees."),
+        _INTL("{1} seems to enjoy the buzzing of the bug Pokémon."),
+        _INTL("{1} is jumping around restlessly in the forest."),
+        _INTL("{1} is wandering around and listening to the different sounds."),
+        _INTL("{1} is munching at the grass."),
+        _INTL("{1} is wandering around and enjoying the forest scenery."),
+        _INTL("{1} is playing around, plucking bits of grass."),
+        _INTL("{1} is staring at the light coming through the trees."),
+        _INTL("{1} is playing around with a leaf!"),
+        _INTL("{1} seems to be listening to the sound of rustling leaves."),
+        _INTL("{1} is standing perfectly still and might be imitating a tree..."),
+        _INTL("{1} got tangled in the branches and almost fell down!"),
+        _INTL("{1} was surprised when it got hit by a branch!")
+      ]
+    end
+    pbMessage(_INTL(messages.sample, pkmn.name, $player.name))
     next true
   end
-}
+})
 #-------------------------------------------------------------------------------
 # Specific message when the weather is Rainy. Pokemon of different types
 # have different reactions to the weather.
 #-------------------------------------------------------------------------------
-Events.OnTalkToFollower += proc { |pkmn, _random_val|
+EventHandlers.add(:following_pkmn_talk, :rainy_weather, proc { |pkmn, _random_val|
   if [:Rain, :HeavyRain].include?($game_screen.weather_type)
     if pkmn.hasType?(:FIRE) || pkmn.hasType?(:GROUND) || pkmn.hasType?(:ROCK)
       FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_ANGRY)
@@ -244,149 +333,39 @@ Events.OnTalkToFollower += proc { |pkmn, _random_val|
         _INTL("{1} is slipping in the water and almost fell over!")
       ]
     end
-    pbMessage(_INTL(messages.sample, pkmn.name, $Trainer.name))
+    pbMessage(_INTL(messages.sample, pkmn.name, $player.name))
     next true
   end
-}
+})
 #-------------------------------------------------------------------------------
-# Specific message when the weather is Storm. Pokemon of different types
-# have different reactions to the weather.
+# Specific message if the map has Beach metadata flag
 #-------------------------------------------------------------------------------
-Events.OnTalkToFollower += proc { |pkmn, _random_val|
-  if :Storm == $game_screen.weather_type
-    if pkmn.hasType?(:ELECTRIC)
-      FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_HAPPY)
-      pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
-      messages = [
-        _INTL("{1} is staring up at the sky."),
-        _INTL("The storm seems to be making {1} excited."),
-        _INTL("{1} looked up at the sky and shouted loudly!"),
-        _INTL("The storm only seems to be energizing {1}!"),
-        _INTL("{1} is happily zapping and jumping in circles!"),
-        _INTL("The lightning doesn't bother {1} at all.")
-      ]
-    else
-      FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_ELIPSES)
-      pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
-      messages = [
-        _INTL("{1} is staring up at the sky."),
-        _INTL("The storm seems to be making {1} a bit nervous."),
-        _INTL("The lightning startled {1}!"),
-        _INTL("The rain doesn't seem to bother {1} much."),
-        _INTL("The weather seems to be putting {1} on edge."),
-        _INTL("{1} was startled by the lightning and snuggled up to {2}!")
-      ]
-    end
-    pbMessage(_INTL(messages.sample, pkmn.name, $Trainer.name))
+EventHandlers.add(:following_pkmn_talk, :beach_map, proc { |pkmn, _random_val|
+  if $game_map.metadata&.has_flag?("Beach")
+    FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_HAPPY)
+    pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
+    messages = [
+      _INTL("{1} seems to be enjoying the scenery."),
+      _INTL("{1} seems to enjoy the sound of the waves moving the sand."),
+      _INTL("{1} looks like it wants to swim!"),
+      _INTL("{1} can barely look away from the ocean."),
+      _INTL("{1} is staring longingly at the water."),
+      _INTL("{1} keeps trying to shove {2} towards the water."),
+      _INTL("{1} is excited to be looking at the sea!"),
+      _INTL("{1} is happily watching the waves!"),
+      _INTL("{1} is playing on the sand!"),
+      _INTL("{1} is staring at {2}'s footprints in the sand."),
+      _INTL("{1} is rolling around in the sand.")
+    ]
+    pbMessage(_INTL(messages.sample, pkmn.name, $player.name))
     next true
   end
-}
-#-------------------------------------------------------------------------------
-# Specific message when the weather is Snowy. Pokemon of different types
-# have different reactions to the weather.
-#-------------------------------------------------------------------------------
-Events.OnTalkToFollower += proc { |pkmn, _random_val|
-  if :Snow == $game_screen.weather_type
-    if pkmn.hasType?(:ICE)
-      FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_HAPPY)
-      pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
-      messages = [
-        _INTL("{1} is watching the snow fall."),
-        _INTL("{1} is thrilled by the snow!"),
-        _INTL("{1} is staring up at the sky with a smile."),
-        _INTL("The snow seems to have put {1} in a good mood."),
-        _INTL("{1} is cheerful because of the cold!")
-      ]
-    else
-      FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_ELIPSES)
-      pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
-      messages = [
-        _INTL("{1} is watching the snow fall."),
-        _INTL("{1} is nipping at the falling snowflakes."),
-        _INTL("{1} wants to catch a snowflake in its' mouth."),
-        _INTL("{1} is fascinated by the snow."),
-        _INTL("{1}'s teeth are chattering!"),
-        _INTL("{1} made its body slightly smaller because of the cold...")
-      ]
-    end
-    pbMessage(_INTL(messages.sample, pkmn.name, $Trainer.name))
-    next true
-  end
-}
-#-------------------------------------------------------------------------------
-# Specific message when the weather is Blizzard. Pokemon of different types
-# have different reactions to the weather.
-#-------------------------------------------------------------------------------
-Events.OnTalkToFollower += proc { |pkmn, _random_val|
-  if :Blizzard == $game_screen.weather_type
-    if pkmn.hasType?(:ICE)
-      FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_HAPPY)
-      pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
-      messages = [
-        _INTL("{1} is watching the hail fall."),
-        _INTL("{1} isn't bothered at all by the hail."),
-        _INTL("{1} is staring up at the sky with a smile."),
-        _INTL("The hail seems to have put {1} in a good mood."),
-        _INTL("{1} is gnawing on a piece of hailstone.")
-      ]
-    else
-      FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_ANGRY)
-      pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
-      messages = [
-        _INTL("{1} is getting pelted by hail!"),
-        _INTL("{1} wants to avoid the hail."),
-        _INTL("The hail is hitting {1} painfully."),
-        _INTL("{1} looks unhappy."),
-        _INTL("{1} is shaking like a leaf!")
-      ]
-    end
-    pbMessage(_INTL(messages.sample, pkmn.name, $Trainer.name))
-    next true
-  end
-}
-#-------------------------------------------------------------------------------
-# Specific message when the weather is Sandstorm. Pokemon of different types
-# have different reactions to the weather.
-#-------------------------------------------------------------------------------
-Events.OnTalkToFollower += proc { |pkmn, _random_val|
-  if :Sandstorm == $game_screen.weather_type
-    if pkmn.hasType?(:ROCK) || pkmn.hasType?(:GROUND)
-      FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_HAPPY)
-      pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
-      messages = [
-        _INTL("{1} is coated in sand."),
-        _INTL("The weather doesn't seem to bother {1} at all!"),
-        _INTL("The sand can't slow {1} down!"),
-        _INTL("{1} is enjoying the weather.")
-      ]
-    elsif pkmn.hasType?(:STEEL)
-      FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_ELIPSES)
-      pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
-      messages = [
-        _INTL("{1} is coated in sand, but doesn't seem to mind."),
-        _INTL("{1} seems unbothered by the sandstorm."),
-        _INTL("The sand doesn't slow {1} down."),
-        _INTL("{1} doesn't seem to mind the weather.")
-      ]
-    else
-      FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_ANGRY)
-      pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
-      messages = [
-        _INTL("{1} is covered in sand..."),
-        _INTL("{1} spat out a mouthful of sand!"),
-        _INTL("{1} is squinting through the sandstorm."),
-        _INTL("The sand seems to be bothering {1}.")
-      ]
-    end
-    pbMessage(_INTL(messages.sample, pkmn.name, $Trainer.name))
-    next true
-  end
-}
+})
 #-------------------------------------------------------------------------------
 # Specific message when the weather is Sunny. Pokemon of different types
 # have different reactions to the weather.
 #-------------------------------------------------------------------------------
-Events.OnTalkToFollower += proc { |pkmn, _random_val|
+EventHandlers.add(:following_pkmn_talk, :sunny_weather, proc { |pkmn, _random_val|
   if :Sun == $game_screen.weather_type
     if pkmn.hasType?(:GRASS)
       FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_HAPPY)
@@ -433,7 +412,8 @@ Events.OnTalkToFollower += proc { |pkmn, _random_val|
         _INTL("{1} shielded its vision against the sparkling light!")
       ]
     end
-    pbMessage(_INTL(messages.sample, pkmn.name, $Trainer.name))
+    pbMessage(_INTL(messages.sample, pkmn.name, $player.name))
     next true
   end
-}
+})
+#-------------------------------------------------------------------------------

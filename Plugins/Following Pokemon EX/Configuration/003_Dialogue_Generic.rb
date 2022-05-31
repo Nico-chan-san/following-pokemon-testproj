@@ -3,24 +3,9 @@
 #-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
-# Generic Item Dialogue
-#-------------------------------------------------------------------------------
-Events.OnTalkToFollower += proc { |_pkmn, _random_val|
-  items = [
-    :POTION,        :SUPERPOTION,  :FULLRESTORE,    :REVIVE,        :PPUP,
-    :PPMAX,         :RARECANDY,    :REPEL,          :MAXREPEL,      :ESCAPEROPE,
-    :HONEY,         :TINYMUSHROOM, :PEARL,          :NUGGET,        :GREATBALL,
-    :ULTRABALL,     :THUNDERSTONE, :MOONSTONE,      :SUNSTONE,      :DUSKSTONE,
-    :REDAPRICORN,   :BLUEAPRICORN, :YELLOWAPRICORN, :GREENAPRICORN, :PINKAPRICORN,
-    :BLACKAPRICORN, :WHITEAPRICORN
-  ]
-  # If no message or quantity is specified the default message is used and the quantity of item is 1
-  next true if FollowingPkmn.item(items.sample)
-}
-#-------------------------------------------------------------------------------
 # All dialogues with the Music Note animation
 #-------------------------------------------------------------------------------
-Events.OnTalkToFollower += proc { |pkmn, random_val|
+EventHandlers.add(:following_pkmn_talk, :music_generic, proc { |pkmn, random_val|
   if random_val == 0
     FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_MUSIC)
     pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
@@ -135,14 +120,14 @@ Events.OnTalkToFollower += proc { |pkmn, random_val|
         PBMoveRoute::Jump, 0, 0
       ])
     end
-    pbMessage(_INTL(messages[value], pkmn.name, $Trainer.name))
+    pbMessage(_INTL(messages[value], pkmn.name, $player.name))
     next true
   end
-}
+})
 #-------------------------------------------------------------------------------
 # All dialogues with the Angry animation
 #-------------------------------------------------------------------------------
-Events.OnTalkToFollower += proc { |pkmn, random_val|
+EventHandlers.add(:following_pkmn_talk, :angry_generic, proc { |pkmn, random_val|
   if random_val == 1
     FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_ANGRY)
     pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
@@ -169,14 +154,14 @@ Events.OnTalkToFollower += proc { |pkmn, random_val|
         PBMoveRoute::Jump, 0, 0
       ])
     end
-    pbMessage(_INTL(messages[value], pkmn.name, $Trainer.name))
+    pbMessage(_INTL(messages[value], pkmn.name, $player.name))
     next true
   end
-}
+})
 #-------------------------------------------------------------------------------
 # All dialogues with the Neutral Animation
 #-------------------------------------------------------------------------------
-Events.OnTalkToFollower += proc { |pkmn, random_val|
+EventHandlers.add(:following_pkmn_talk, :ellipses_generic, proc { |pkmn, random_val|
   if random_val == 2
     FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_ELIPSES)
     pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
@@ -230,14 +215,14 @@ Events.OnTalkToFollower += proc { |pkmn, random_val|
         PBMoveRoute::TurnDown
       ])
     end
-    pbMessage(_INTL(messages[value], pkmn.name, $Trainer.name))
+    pbMessage(_INTL(messages[value], pkmn.name, $player.name))
     next true
   end
-}
+})
 #-------------------------------------------------------------------------------
 # All dialogues with the Happy animation
 #-------------------------------------------------------------------------------
-Events.OnTalkToFollower += proc { |pkmn, random_val|
+EventHandlers.add(:following_pkmn_talk, :happy_generic, proc { |pkmn, random_val|
   if random_val == 3
     FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_HAPPY)
     pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
@@ -299,14 +284,14 @@ Events.OnTalkToFollower += proc { |pkmn, random_val|
         PBMoveRoute::Jump, 0, 0
       ])
     end
-    pbMessage(_INTL(messages[value], pkmn.name, $Trainer.name))
+    pbMessage(_INTL(messages[value], pkmn.name, $player.name))
     next true
   end
-}
+})
 #-------------------------------------------------------------------------------
 # All dialogues with the Heart animation
 #-------------------------------------------------------------------------------
-Events.OnTalkToFollower += proc { |pkmn, random_val|
+EventHandlers.add(:following_pkmn_talk, :angry_generic, proc { |pkmn, random_val|
   if random_val == 4
     FollowingPkmn.animation(FollowingPkmn::ANIMATION_EMOTE_HEART)
     pbMoveRoute($game_player, [PBMoveRoute::Wait, 20])
@@ -342,14 +327,14 @@ Events.OnTalkToFollower += proc { |pkmn, random_val|
         PBMoveRoute::Jump, 0, 0
       ])
     end
-    pbMessage(_INTL(messages[value], pkmn.name, $Trainer.name))
+    pbMessage(_INTL(messages[value], pkmn.name, $player.name))
     next true
   end
-}
+})
 #-------------------------------------------------------------------------------
 # All dialogues with no animation
 #-------------------------------------------------------------------------------
-Events.OnTalkToFollower += proc { |pkmn, random_val|
+EventHandlers.add(:following_pkmn_talk, :generic,  proc { |pkmn, random_val|
   if random_val == 5
     messages = [
       _INTL("{1} spun around in a circle!"),
@@ -435,7 +420,8 @@ Events.OnTalkToFollower += proc { |pkmn, random_val|
         PBMoveRoute::Jump, 0, 0
       ])
     end
-    pbMessage(_INTL(messages[value], pkmn.name, $Trainer.name))
+    pbMessage(_INTL(messages[value], pkmn.name, $player.name))
     next true
   end
-}
+})
+#-------------------------------------------------------------------------------

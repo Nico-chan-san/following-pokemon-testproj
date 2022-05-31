@@ -20,6 +20,9 @@ module FollowingPkmn
   # you want to disable this feature. (:JUMPUP is the A key by default)
   TOGGLE_FOLLOWER_KEY       = :JUMPUP
 
+  # Show the option to toggle Following Pokemon in the Options screen.
+  SHOW_TOGGLE_IN_OPTIONS    = true
+
   # The key the player needs to press to quickly cycle through their party. Set
   # this to nil if you want to disable this feature
   CYCLE_PARTY_KEY           = nil
@@ -50,12 +53,13 @@ module FollowingPkmn
   IMPASSABLE_FOLLOWER       = true
 
   # Whether Following Pokemon slides into battle instead of being sent
-  # in a Pokeball.
+  # in a Pokeball. (This doesn't affect EBDX, read the EBDX documentation to
+  # change this feature in EBDX)
   SLIDE_INTO_BATTLE         = true
 
   # Show the Ball Opening and Closing animation when Nurse Joy takes your
   # Pokeballs at the Pokecenter.
-  SHOW_POKECENTER_ANIMATION = false
+  SHOW_POKECENTER_ANIMATION = true
 
   # List of Pokemon that will always appear behind the player when surfing
   # Doesn't include any flying or water types because those are handled already
@@ -112,27 +116,4 @@ module FollowingPkmn
     # Gen VIII
     :ROOKIDEE, :CALYREX_1, :CALYREX_2
   ]
-end
-
-#===============================================================================
-# DO NOT TOUCH THIS UNDER ANY CIRCUMSTANCES
-#===============================================================================
-class FollowerEvent < Event
-  def trigger(*arg)
-    for callback in @callbacks
-      ret = callback.call(*arg)
-      return ret if ret == true || ret == false
-    end
-    return -1
-  end
-end
-
-module Events
-  @@OnTalkToFollower = FollowerEvent.new
-  def self.OnTalkToFollower;     @@OnTalkToFollower;     end
-  def self.OnTalkToFollower=(v); @@OnTalkToFollower = v; end
-
-  @@FollowerRefresh = FollowerEvent.new
-  def self.FollowerRefresh;     @@FollowerRefresh;     end
-  def self.FollowerRefresh=(v); @@FollowerRefresh = v; end
 end
